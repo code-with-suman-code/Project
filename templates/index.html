@@ -4,77 +4,108 @@
   <meta charset="UTF-8" />
   <title>Study Desk</title>
 </head>
-<body style="margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(to right, #e0f7ff, #f1f9ff); padding: 40px 20px; min-height: 100vh; position: relative; overflow-x: hidden; display: flex; flex-direction: column; align-items: center;">
+<body style="font-family: 'Segoe UI', sans-serif; background: #f0f8ff; padding: 40px; text-align: center;">
 
-  <!-- 🔥 Perfectly Visible & Animated Heading -->
-  <h1 style="
-    font-size: 48px;
-    font-weight: 900;
-    margin: 0 0 25px 0;
-    background: linear-gradient(90deg, #007BFF, #00d4ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-align: center;
-    animation: flyIn 1.5s ease-out forwards;
-    opacity: 0;
-    transform: translateY(-50px) scale(0.8);
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 10px rgba(0,123,255,0.3);
-  ">
+  <!-- 🔥 Heading -->
+  <h1 style="font-size: 48px; background: linear-gradient(90deg, #007BFF, #00d4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: flyIn 1.5s ease-out forwards; opacity: 0; transform: translateY(-50px) scale(0.8); text-shadow: 2px 2px 10px rgba(0,123,255,0.3);">
     📘 STUDY DESK
   </h1>
 
-  <!-- 📘 Instruction Note Hindi + English -->
-  <div style="background: #eaf6ff; border-left: 5px solid #007BFF; padding: 15px 20px; margin-bottom: 25px; border-radius: 6px; color: #333; max-width: 700px;">
-    <p style="margin: 0; font-size: 15px; line-height: 1.6;">
-      <strong>📌 What this website does:</strong><br>
-      Upload any educational PDF, Word, or text-based book. This tool will automatically generate important one-liner questions and MCQs.  
-      Use it to prepare for your upcoming exams with confidence!
+  <!-- Upload Form -->
+  <div id="uploadSection">
+    <p><strong>Upload a PDF, DOCX or TXT file to begin quiz.</strong></p>
+    <form id="uploadForm" enctype="multipart/form-data" onsubmit="
+      event.preventDefault();
+      const formData = new FormData(this);
+      document.getElementById('uploadStatus').textContent = 'Processing...';
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      }).then(res => res.json()).then(data => {
+        if (data.start_quiz) {
+          document.getElementById('uploadSection').style.display = 'none';
+          startQuiz();
+        } else {
+          document.getElementById('uploadStatus').textContent = data.questions;
+        }
+      });
+    ">
+      <input type="file" name="document" required />
       <br><br>
-      <strong>📌 यह वेबसाइट क्या करती है:</strong><br>
-      कोई भी PDF, Word या टेक्स्ट बुक अपलोड करें — यह टूल उसमें से महत्वपूर्ण एक लाइन के प्रश्न और MCQ (वैकल्पिक प्रश्न) खुद-ब-खुद बना देगा।  
-      इसका उपयोग करके आप अपने आने वाले एग्जाम की शानदार तैयारी कर सकते हैं।
-    </p>
+      <button type="submit">Upload & Start Quiz</button>
+    </form>
+    <p id="uploadStatus" style="color: #555;"></p>
   </div>
 
-  <!-- 📤 Upload Form -->
-  <form id="uploadForm" enctype="multipart/form-data" style="text-align: center; margin-bottom: 30px;" onsubmit="
-    event.preventDefault();
-    const formData = new FormData(this);
-    const output = document.getElementById('output');
-    output.textContent = '⏳ Processing... Please wait.';
-    fetch('/upload', {
-      method: 'POST',
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      output.textContent = data.questions || '❌ No questions found.';
-    })
-    .catch(err => {
-      output.textContent = '⚠️ Error processing file.';
-      console.error(err);
-    });
-  ">
-    <input type="file" name="document" required style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 280px;" />
-    <br><br>
-    <button type="submit" style="background-color: #007BFF; color: white; font-weight: bold; padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer;">
-      Upload & Generate
-    </button>
-  </form>
-
-  <!-- 📥 Output Display -->
-  <div style="width: 100%; max-width: 700px;">
-    <h3 style="color: #34495e;">📝 Generated Questions:</h3>
-    <pre id="output" style="background: #f9f9f9; padding: 15px; border-radius: 6px; white-space: pre-wrap; border: 1px solid #ddd; min-height: 180px;"></pre>
+  <!-- Quiz Section -->
+  <div id="quizSection" style="display: none; max-width: 600px; margin: auto;">
+    <h2 id="questionText"></h2>
+    <div id="optionsList"></div>
+    <p id="feedback" style="font-weight: bold;"></p>
+    <button id="nextBtn" style="display:none;" onclick="getNextQuestion()">Next</button>
   </div>
 
-  <!-- 🦶 Footer -->
-  <footer style="text-align: center; margin-top: 60px; color: #777; font-size: 14px;">
-    © 2025 by <span style="color: #007BFF; font-weight: bold;">sumantamarddy</span>
-  </footer>
+  <!-- Score -->
+  <div id="scoreSection" style="display: none;">
+    <h2>🎉 Quiz Completed!</h2>
+    <p id="finalScore"></p>
+    <button onclick="window.location.href='/restart'">Upload New Document</button>
+  </div>
 
-  <!-- ✨ CSS Animations -->
+  <!-- Inline JS -->
+  <script>
+    function startQuiz() {
+      document.getElementById('quizSection').style.display = 'block';
+      getNextQuestion();
+    }
+
+    function getNextQuestion() {
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('nextBtn').style.display = 'none';
+
+      fetch('/get_question')
+        .then(res => res.json())
+        .then(data => {
+          if (data.end) {
+            document.getElementById('quizSection').style.display = 'none';
+            document.getElementById('scoreSection').style.display = 'block';
+            document.getElementById('finalScore').textContent = `You scored ${data.score} out of ${data.total}`;
+            return;
+          }
+
+          document.getElementById('questionText').textContent = `Q${data.qno}: ${data.question}`;
+          const optionsDiv = document.getElementById('optionsList');
+          optionsDiv.innerHTML = '';
+
+          data.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.textContent = opt;
+            btn.style.margin = '5px';
+            btn.onclick = () => submitAnswer(opt);
+            optionsDiv.appendChild(btn);
+          });
+        });
+    }
+
+    function submitAnswer(selected) {
+      fetch('/submit_answer', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({answer: selected})
+      }).then(res => res.json())
+        .then(data => {
+          if (data.result === 'correct') {
+            document.getElementById('feedback').textContent = '✅ Correct!';
+            document.getElementById('feedback').style.color = 'green';
+          } else {
+            document.getElementById('feedback').textContent = `❌ Wrong! Correct Answer: ${data.correct_answer}`;
+            document.getElementById('feedback').style.color = 'red';
+          }
+          document.getElementById('nextBtn').style.display = data.next ? 'inline-block' : 'none';
+        });
+    }
+  </script>
+
   <style>
     @keyframes flyIn {
       0% {
@@ -94,5 +125,7 @@
     }
   </style>
 
+  <!-- Footer -->
+  <footer style="margin-top: 40px; color: #555;">© 2025 by <strong>sumantamarddy</strong></footer>
 </body>
 </html>
