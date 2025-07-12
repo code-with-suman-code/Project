@@ -14,10 +14,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# Dummy options for MCQ choices
 DUMMY_OPTIONS = ['Mumbai', 'Chennai', 'Kolkata', 'Ahmedabad', 'Hyderabad', 'Lucknow', 'Pune', 'Surat']
 
-# 🧠 Extract text from PDF
 def extract_text_from_pdf(path):
     text = ""
     with fitz.open(path) as doc:
@@ -25,17 +23,14 @@ def extract_text_from_pdf(path):
             text += page.get_text()
     return text
 
-# 🧠 Extract text from DOCX
 def extract_text_from_docx(path):
     doc = docx.Document(path)
     return '\n'.join([para.text for para in doc.paragraphs])
 
-# 🧠 Extract text from TXT
 def extract_text_from_txt(path):
     with open(path, 'r', encoding='utf-8') as f:
         return f.read()
 
-# 🎯 Generate MCQs from text
 def generate_mcqs(text):
     sentences = re.split(r'(?<=[.?!])\s+', text)
     mcqs = []
@@ -58,12 +53,10 @@ def generate_mcqs(text):
             break
     return mcqs
 
-# 🏠 Home Route
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# 📥 File Upload & MCQ Extraction
 @app.route('/upload', methods=['POST'])
 def upload():
     file = request.files.get('document')
@@ -94,7 +87,6 @@ def upload():
 
     return jsonify({'questions': 'MCQs generated. Quiz will begin now.', 'start_quiz': True})
 
-# 🔄 Get Next Question
 @app.route('/get_question')
 def get_question():
     mcqs = session.get('mcqs', [])
@@ -108,7 +100,6 @@ def get_question():
         'qno': index + 1
     })
 
-# ✅ Submit Answer & Feedback
 @app.route('/submit_answer', methods=['POST'])
 def submit_answer():
     data = request.json
@@ -133,13 +124,13 @@ def submit_answer():
         'next': session['current'] < len(mcqs)
     })
 
-# 🔁 Restart Quiz
 @app.route('/restart')
 def restart():
     session.clear()
     return redirect(url_for('index'))
 
-# 🔥 Run Server
+# ✅ Render-compatible run
 if __name__ == '__main__':
-    app.run(debug=True)
-  
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
