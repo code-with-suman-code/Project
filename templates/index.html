@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Study Desk</title>
+</head>
+<body style="margin: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(to right, #e0f7ff, #f1f9ff); padding: 40px 20px; min-height: 100vh; position: relative; overflow-x: hidden; display: flex; flex-direction: column; align-items: center;">
+
+  <!-- 🔥 Perfectly Visible & Animated Heading -->
+  <h1 style="
+    font-size: 48px;
+    font-weight: 900;
+    margin: 0 0 25px 0;
+    background: linear-gradient(90deg, #007BFF, #00d4ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    animation: flyIn 1.5s ease-out forwards;
+    opacity: 0;
+    transform: translateY(-50px) scale(0.8);
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 10px rgba(0,123,255,0.3);
+  ">
+    📘 STUDY DESK
+  </h1>
+
+  <!-- 📘 Instruction Note Hindi + English -->
+  <div style="background: #eaf6ff; border-left: 5px solid #007BFF; padding: 15px 20px; margin-bottom: 25px; border-radius: 6px; color: #333; max-width: 700px;">
+    <p style="margin: 0; font-size: 15px; line-height: 1.6;">
+      <strong>📌 What this website does:</strong><br>
+      Upload any educational PDF, Word, or text-based book. This tool will automatically generate important one-liner questions and MCQs.  
+      Use it to prepare for your upcoming exams with confidence!
+      <br><br>
+      <strong>📌 यह वेबसाइट क्या करती है:</strong><br>
+      कोई भी PDF, Word या टेक्स्ट बुक अपलोड करें — यह टूल उसमें से महत्वपूर्ण एक लाइन के प्रश्न और MCQ (वैकल्पिक प्रश्न) खुद-ब-खुद बना देगा।  
+      इसका उपयोग करके आप अपने आने वाले एग्जाम की शानदार तैयारी कर सकते हैं।
+    </p>
+  </div>
+
+  <!-- 📤 Upload Form -->
+  <form id="uploadForm" enctype="multipart/form-data" style="text-align: center; margin-bottom: 30px;" onsubmit="
+    event.preventDefault();
+    const formData = new FormData(this);
+    const output = document.getElementById('output');
+    output.textContent = '⏳ Processing... Please wait.';
+    fetch('/upload', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      output.textContent = data.questions || '❌ No questions found.';
+    })
+    .catch(err => {
+      output.textContent = '⚠️ Error processing file.';
+      console.error(err);
+    });
+  ">
+    <input type="file" name="document" required style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; width: 280px;" />
+    <br><br>
+    <button type="submit" style="background-color: #007BFF; color: white; font-weight: bold; padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer;">
+      Upload & Generate
+    </button>
+  </form>
+
+  <!-- 📥 Output Display -->
+  <div style="width: 100%; max-width: 700px;">
+    <h3 style="color: #34495e;">📝 Generated Questions:</h3>
+    <pre id="output" style="background: #f9f9f9; padding: 15px; border-radius: 6px; white-space: pre-wrap; border: 1px solid #ddd; min-height: 180px;"></pre>
+  </div>
+
+  <!-- 🦶 Footer -->
+  <footer style="text-align: center; margin-top: 60px; color: #777; font-size: 14px;">
+    © 2025 by <span style="color: #007BFF; font-weight: bold;">sumantamarddy</span>
+  </footer>
+
+  <!-- ✨ CSS Animations -->
+  <style>
+    @keyframes flyIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.8) rotateX(90deg);
+        letter-spacing: 10px;
+      }
+      60% {
+        opacity: 1;
+        transform: translateY(10px) scale(1.05) rotateX(0deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        letter-spacing: 2px;
+      }
+    }
+  </style>
+
+</body>
+</html>
